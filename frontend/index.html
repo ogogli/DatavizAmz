@@ -1,1 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>DatavizAMZ</title>
+ 
+ <script src="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.js"></script>
+    <script src="js/dashboard.js"></script>
+
+    <link href="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+</head>
+<body>
+
+    <div class="ui-panel">
+        <strong style="display: block; margin-bottom: 15px; font-size: 18px; letter-spacing: -0.5px;">Amazon Weather</strong>
+        
+        <div class="layer-selector">
+            <label>SCALAR LAYER</label>
+            <select id="layer-type">
+                <option value="rain">Precipitation (mm/h)</option>
+                <option value="gust">Wind Gusts (km/h)</option>
+                <option value="humidity">Relative Humidity (%)</option>
+                <option value="temperature">Temperature (°C)</option>
+                <option value="none">None (Satellite Only)</option>
+            </select>
+        </div>
+
+        <div class="wind-toggle-container">
+            <label for="wind-checkbox">💨 Streamline Particles</label>
+            <input type="checkbox" id="wind-checkbox" checked>
+        </div>
+
+        <div id="time-label">
+            <span id="fxx-text">Forecast: +0h</span>
+            <span id="zulu-text">00:00Z</span>
+        </div>
+        
+        <input type="range" id="slider" min="0" max="47" step="1" value="0">
+
+        <div class="playback-controls">
+            <button class="control-btn" id="prev-btn">◀</button>
+            <button class="control-btn" id="play-pause-btn">PAUSE</button>
+            <button class="control-btn" id="next-btn">▶</button>
+        </div>
+    </div>
+
+    <div id="legend-rain" class="legend">
+        <span class="legend-title">Rain Rate (mm/h)</span>
+        <div class="legend-item"><div class="color-box" style="background: #eff3ff;"></div> 0.1 — 1.0</div>
+        <div class="legend-item"><div class="color-box" style="background: #bdd7e7;"></div> 1.0 — 5.0</div>
+        <div class="legend-item"><div class="color-box" style="background: #6baed6;"></div> 5.0 — 15.0</div>
+        <div class="legend-item"><div class="color-box" style="background: #3182bd;"></div> 15.0 — 30.0</div>
+        <div class="legend-item"><div class="color-box" style="background: #08519c;"></div> 30.0+</div>
+    </div>
+
+    <div id="legend-gust" class="legend" style="display: none;">
+        <span class="legend-title">Wind Gusts (km/h)</span>
+        <div class="legend-item"><div class="color-box" style="background: #3b0f70;"></div> 10 — 30</div>
+        <div class="legend-item"><div class="color-box" style="background: #8c2981;"></div> 30 — 50</div>
+        <div class="legend-item"><div class="color-box" style="background: #de4968;"></div> 50 — 70</div>
+        <div class="legend-item"><div class="color-box" style="background: #fe9f6d;"></div> 70 — 90</div>
+        <div class="legend-item"><div class="color-box" style="background: #fcfdbf;"></div> 90+</div>
+    </div>
+
+    <div id="legend-humidity" class="legend" style="display: none;">
+        <span class="legend-title">Relative Humidity (%)</span>
+        <div class="legend-item"><div class="color-box" style="background: #edf8b1;"></div> Dry (20-40)</div>
+        <div class="legend-item"><div class="color-box" style="background: #7fcdbb;"></div> Moderate (40-60)</div>
+        <div class="legend-item"><div class="color-box" style="background: #41b6c4;"></div> Humid (60-80)</div>
+        <div class="legend-item"><div class="color-box" style="background: #225ea8;"></div> Sat. (80-100%)</div>
+    </div>
+
+    <div id="legend-temperature" class="legend" style="display: none;">
+        <span class="legend-title">Temperature (°C)</span>
+        <div class="legend-item"><div class="color-box" style="background: #1c0a35;"></div> &lt; 20°C (Cold)</div>
+        <div class="legend-item"><div class="color-box" style="background: #57106e;"></div> 20 — 24°C</div>
+        <div class="legend-item"><div class="color-box" style="background: #8c2562;"></div> 24 — 28°C</div>
+        <div class="legend-item"><div class="color-box" style="background: #c33d48;"></div> 28 — 32°C</div>
+        <div class="legend-item"><div class="color-box" style="background: #f1731d;"></div> 32 — 36°C</div>
+        <div class="legend-item"><div class="color-box" style="background: #fbc127;"></div> &gt; 36°C (Heat)</div>
+    </div>
+
+	<div id="legend-wind-particles" class="legend">
+		<span class="legend-title">Wind (Velocity)</span>
+		<div class="legend-item"><div class="color-box" style="background: #66ff66; border-radius: 4px;"></div> 0 - 10 km/h</div>
+		<div class="legend-item"><div class="color-box" style="background: #3399ff; border-radius: 4px;"></div> 10 - 20 km/h</div>
+		<div class="legend-item"><div class="color-box" style="background: #ffff33; border-radius: 4px;"></div> 20 - 30 km/h</div>
+		<div class="legend-item"><div class="color-box" style="background: #ff9933; border-radius: 4px;"></div> 30 - 40 km/h</div>
+		<div class="legend-item"><div class="color-box" style="background: #ff3333; border-radius: 4px;"></div> 40 - 50 km/h</div>
+		<div class="legend-item"><div class="color-box" style="background: #9933ff; border-radius: 4px;"></div> &gt; 50 km/h</div>
+	</div>
+
+    <div id="map"></div>
+
+</body>
+</html>
 
