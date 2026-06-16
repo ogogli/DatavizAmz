@@ -1,1 +1,19 @@
+# --- DatavizAMZ Backend Requirements ---
+
+# Meteorological Data Discovery and Retrieval
+herbie>=2024.1.0
+
+# Multidimensional Matrix Manipulation & Science Stack
+numpy>=1.24.0
+xarray>=2023.5.0
+pandas>=2.0.0
+scipy>=1.10.0
+
+# Image Processing, Filtering, and PNG Exportation
+matplotlib>=3.7.0
+imageio>=2.30.0
+
+# Operational Utilities
+requests>=2.31.0
+urllib3>=2.0.0
 
