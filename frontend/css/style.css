@@ -1,1 +1,67 @@
+body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #000; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
+/* UI Control Panel Styling */
+.ui-panel {
+	position: absolute; top: 20px; left: 20px; z-index: 10;
+	background: rgba(15, 15, 15, 0.85); color: white;
+	padding: 20px; border-radius: 12px;
+	backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);
+	width: 240px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.layer-selector { margin-bottom: 15px; }
+.layer-selector label { font-size: 10px; color: #888; letter-spacing: 1px; font-weight: bold; }
+
+select { 
+	width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; 
+	background: #222; color: white; border: 1px solid #444; cursor: pointer;
+	outline: none; font-size: 13px;
+}
+
+.wind-toggle-container {
+	display: flex; align-items: center; justify-content: space-between;
+	background: rgba(255, 255, 255, 0.05); padding: 10px;
+	border-radius: 6px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.wind-toggle-container label { font-size: 11px; font-weight: bold; color: #fff; cursor: pointer;}
+.wind-toggle-container input[type="checkbox"] { width: 18px; height: 18px; accent-color: #00e5ff; cursor: pointer; }
+
+#time-label { margin-bottom: 10px; display: block; }
+#fxx-text { font-size: 12px; color: #00e5ff; font-weight: bold; }
+#zulu-text { font-size: 22px; color: white; font-weight: 200; display: block; margin-top: 2px; }
+
+input[type=range] { width: 100%; cursor: pointer; margin-top: 10px; accent-color: #00e5ff; }
+
+.playback-controls {
+	display: flex; justify-content: space-between; align-items: center;
+	margin-top: 15px; gap: 8px;
+}
+
+.control-btn {
+	background: #222; color: white; border: 1px solid #444;
+	padding: 8px 12px; border-radius: 6px; cursor: pointer;
+	font-size: 12px; font-weight: bold; flex: 1;
+	transition: all 0.2s ease; display: flex; justify-content: center; align-items: center;
+}
+
+.control-btn:hover { background: #333; border-color: #00e5ff; }
+#play-pause-btn { background: #00e5ff; color: #000; border: none; }
+#play-pause-btn:hover { background: #00b3cc; }
+
+/* Map Legends Styling */
+.legend {
+	position: absolute; bottom: 40px; right: 20px; z-index: 10;
+	background: rgba(15, 15, 15, 0.85); color: white;
+	padding: 15px; border-radius: 12px;
+	backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);
+	font-size: 11px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); min-width: 160px;
+}
+.legend-title { font-weight: bold; margin-bottom: 10px; display: block; border-bottom: 1px solid #444; padding-bottom: 5px; }
+.legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+.color-box { width: 30px; height: 12px; margin-right: 10px; border-radius: 2px; }
+
+#legend-wind-particles {
+	bottom: 240px;
+	right: 20px;
+}
