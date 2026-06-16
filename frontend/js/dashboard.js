@@ -1,5 +1,5 @@
 // Set the PNG files directory 
-const pngHome = 'YOUR PNG DIRECTORY HERE'
+const pngHome = '/pngs'
 
 // 1. Take system date
 const baseDate = new Date();
