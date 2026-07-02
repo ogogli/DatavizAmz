@@ -1,10 +1,8 @@
-# DatavizAmz
 
-Markdown
 # DatavizAMZ 🌦️🌐
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CCBY-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/deed.en) 
 [![Framework: MapLibre](https://img.shields.io/badge/Framework-MapLibre-brightgreen.svg)](https://maplibre.org/)
 
 DatavizAMZ is an open-source, high-performance WebGIS application designed to automate the retrieval, processing, and interactive visualization of meteorological data. The platform serves as a flexible architecture for environmental monitoring.
@@ -86,7 +84,8 @@ Push to the Branch (git push origin feature/AmazingFeature)
 Open a Pull Request
 
 📄 License
-Distributed under the MIT License. See LICENSE for more information.
+This work is licensed under a Creative Commons Attribution 4.0 International License (https://creativecommons.org).
+© 2026, Osvaldo Gogliano Sobrinho. Available at: https://github.com/ogogli/DatavizAmz
 
 👥 Acknowledgments
 Study and Research Group in Big Data (WDS) — University of São Paulo (USP)
