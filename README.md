@@ -73,7 +73,7 @@ Bash
 crontab -e
 Add the following line to run the automated script daily (example configured for 05:30 UTC to download the complete 00z forecast horizon):
 Bash
-30 5 * * * /path/to/DatavizAMZ/venv/bin/python /path/to/DatavizAMZ/backend/download_pipeline.py
+30 5 * * * /path/to/DatavizAMZ/venv/bin/python /path/to/DatavizAMZ/backend/get_grib2.py.py
 
 🤝 Contributing
 Any contributions you make to enhance DatavizAMZ are greatly appreciated.
