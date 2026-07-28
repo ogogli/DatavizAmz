@@ -1,92 +1,83 @@
-
+Markdown
 # DatavizAMZ 🌦️🌐
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CCBY-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/deed.en) 
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CCBY-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/deed.en)
 [![Framework: MapLibre](https://img.shields.io/badge/Framework-MapLibre-brightgreen.svg)](https://maplibre.org/)
 
-DatavizAMZ is an open-source, high-performance WebGIS application designed to automate the retrieval, processing, and interactive visualization of meteorological data. The platform serves as a flexible architecture for environmental monitoring.
+DatavizAMZ is an open-source, high-performance WebGIS application designed to automate the retrieval, processing, and interactive visualization of meteorological data. Optimized for the Amazon Basin with global grid scalability, the platform provides a lightweight, decoupled architecture for real-time environmental monitoring.
 
 ---
 
 ## 🚀 Key Features
 
-* **Weather Data:** Retrieve weather data from NOAA's Global Forecast System (GFS) via the Herbie package. A Gaussian filter  and Cubic interpolation are used to mitigate high-frequency noise and upscale the data matrices.
-* **Vector Field Visualizations:** Encodes North-South ($u$) and East-West ($v$) wind velocity components directly into the red and blue color channels of PNG files, enabling real-time particle advection via GPU on the client side.
-* **Unified & Lightweight Architecture:** Both frontend components (HTML/JS/MapLibre) and backend scripts (Python 3) can be co-located on a single standard web server (Apache/Nginx).
+* **Automated Weather Data Pipeline:** Retrieves numerical weather predictions from NOAA's Global Forecast System (GFS) via the `Herbie` framework. A Gaussian filter ($\sigma = 1.0$, $5 \times 5$ kernel window) and bicubic interpolation are applied to eliminate high-frequency noise and upscale matrix resolution without blocky artifacts.
+* **Vector Field Encoding:** Decomposes wind velocity into its Zonal ($u$, East-West) and Meridional ($v$, North-South) components, normalizing them into the **red and green** channels of compact PNG graphic containers.
+* **Client-Side Particle Advection:** Renders smooth, fluid wind flow animations with trailing fade effects directly in the client's browser using a hardware-accelerated **HTML5 Canvas API** loop operating at 60 FPS.
+* **Unified & Lightweight Architecture:** Co-locates frontend web components (HTML/JS/MapLibre) and backend data ingestion scripts (Python 3) on a single web server (Apache/Nginx) to eliminate Cross-Origin Resource Sharing (CORS) overhead.
 
 ---
 
 ## 🛠️ System Architecture
 
-The software operates under a decoupled, automated data pipeline synchronized with NOAA's synoptic update cycles (accounting for the standard 3.5 to 4-hour publication latency):
+The software operates as a decoupled, automated data pipeline synchronized with NOAA's synoptic update cycles (accounting for the standard 3.5 to 4-hour publication latency):
 
-[ NOAA Servers / AWS S3 ]
-│ (Automated Cron Job / Herbie API Retrieval)
-▼
-[ Backend: Python 3 Processing ] ──► Gaussian Filter & Bicubic Interpolation
-│
-▼
-[ Matrix Exportation ] ──► Generates PNG files (Scalar Layers & RGB-encoded Wind Vectors)
-│
-▼
-[ Frontend: MapLibre Dashboard ] ──► Real-time rendering & Fluid particle advection
-
----
-
-## 📋 Software Requirements
-
-### Backend (Python 3.8+)
-The pipeline relies on the following standard utility modules and scientific libraries:
-* `herbie` (Data discovery and retrieval)
-* `numpy` & `xarray` (Multidimensional matrix manipulation)
-* `matplotlib` & `imageio` (Image processing and PNG exportation)
-* `os`, `sys`, `datetime`, `warnings` (System and scheduling utilities)
-
-### Web Hosting & Frontend
-* An HTTP Web Server (**Apache**, **Nginx**, or equivalent).
-* **MapLibre GL JS** framework (loaded client-side for interactive map rendering).
-
----
-
-## 🔧 Installation & Setup
-
-### 1. Clone the Repository
-```bash
-git clone [https://github.com/your-username/DatavizAMZ.git](https://github.com/your-username/DatavizAMZ.git)
-cd DatavizAMZ
-
+```text
+[ NOAA Servers / AWS S3 / GCP ]
+               │ 
+               │ (Automated Cron Job / Herbie API Byte-Range Retrieval)
+               ▼
+ [ Backend: Python Data Processing ] ──► Gaussian Filter (σ=1.0) & Bicubic Upscaling
+               │
+               ▼
+    [ Lossless PNG Encoding ]       ──► Generates 16 MB PNG Assets (Scalar & RGB-encoded Vectors)
+               │
+               ▼
+  [ Frontend: MapLibre Dashboard ]  ──► HTML5 Canvas Render & 60 FPS Particle Flow Advection
+📋 Software Requirements
+Backend (Python 3.8+)
+The pipeline relies on the following standard utility modules and scientific computing libraries:
+herbie-data (Programmatic GRIB2 data discovery and HTTP byte-range retrieval)
+numpy & xarray (Multidimensional array processing)
+scipy (Gaussian spatial filtering)
+matplotlib & imageio (Raster image processing and PNG export)
+os, sys, datetime, warnings (System scheduling and operational utilities)
+Web Hosting & Frontend
+HTTP Web Server (Apache, Nginx, or equivalent).
+MapLibre GL JS (client-side interactive map rendering).
+HTML5 Canvas API (hardware-accelerated particle flow vector engine).
+🔧 Installation & Setup
+1. Clone the Repository
+Bash
+git clone [https://github.com/ogogli/DatavizAmz.git](https://github.com/ogogli/DatavizAmz.git)
+cd DatavizAmz
 2. Configure the Backend Environment
-We recommend using a virtual environment to manage dependencies:
+We recommend using a virtual environment to manage dependencies cleanly:
 Bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-(Make sure your requirements.txt includes: herbie, numpy, xarray, matplotlib, imageio)
-
+(Ensure your requirements.txt includes: herbie-data, numpy, xarray, scipy, matplotlib, and imageio).
 3. Deploy the Dashboard
-Move the contents of the frontend/ directory to your web server's root directory (e.g., /var/www/html/datavizamz).
-
+Move the contents of the frontend/ directory to your web server's public root directory (e.g., /var/www/html/datavizamz).
 4. Automate Data Retrieval
-To bypass NOAA's data processing latency, configure a daily cron job on your Linux environment to trigger the script strictly after the submission completion windows. Open your crontab configuration:
+To handle NOAA's data processing latency automatically, configure a daily cron job on your Linux environment to trigger the script following publication windows. Open your crontab editor:
 Bash
 crontab -e
-Add the following line to run the automated script daily (example configured for 05:30 UTC to download the complete 00z forecast horizon):
+Add the following line to run the automated script daily (configured for 05:30 UTC to fetch the complete 00z forecast horizon):
 Bash
-30 5 * * * /path/to/DatavizAMZ/venv/bin/python /path/to/DatavizAMZ/backend/get_grib2.py.py
-
+30 5 * * * /path/to/DatavizAmz/venv/bin/python /path/to/DatavizAmz/backend/get_grib2.py
+(Note: Replace /path/to/DatavizAmz/ with the absolute path on your server).
 🤝 Contributing
-Any contributions you make to enhance DatavizAMZ are greatly appreciated.
+Contributions to enhance DatavizAMZ are welcome! To contribute:
 Fork the Project
 Create your Feature Branch (git checkout -b feature/AmazingFeature)
 Commit your Changes (git commit -m 'Add some AmazingFeature')
 Push to the Branch (git push origin feature/AmazingFeature)
 Open a Pull Request
-
 📄 License
-This work is licensed under a Creative Commons Attribution 4.0 International License (https://creativecommons.org).
+This work is licensed under a Creative Commons Attribution 4.0 International License.
 © 2026, Osvaldo Gogliano Sobrinho. Available at: https://github.com/ogogli/DatavizAmz
-
 👥 Acknowledgments
 Study and Research Group in Big Data (WDS) — University of São Paulo (USP)
-National Oceanic and Atmospheric Administration (NOAA) for open-access data.
+National Oceanic and Atmospheric Administration (NOAA) for providing open-access GFS meteorological data.
