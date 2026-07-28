@@ -3,8 +3,7 @@
 **Automated, High-Performance WebGIS Engine for Real-Time Meteorological Data**
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Framework: MapLibre](https://img.shields.io/badge/Framework-MapLibre-brightgreen.svg)](https://maplibre.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)[![Framework: MapLibre](https://img.shields.io/badge/Framework-MapLibre-brightgreen.svg)](https://maplibre.org/)
 
 *DatavizAMZ is an open-source WebGIS platform designed to automate the retrieval, processing, and interactive rendering of atmospheric datasets. Optimized for the Amazon Basin with global grid scalability, it features a decoupled architecture for real-time environmental monitoring.*
 
@@ -176,7 +175,7 @@ Contributions are welcome! Please follow these steps:
 
 ## 📄 License & Citation
 
-Distributed under the **Creative Commons Attribution 4.0 International (CC BY 4.0)** License.  
+This software is distributed under the **MIT License**. See the [LICENSE](LICENSE) file for details.  
 © 2026, **Osvaldo Gogliano Sobrinho**. Official repository: [github.com/ogogli/DatavizAmz](https://github.com/ogogli/DatavizAmz)
 
 ---
