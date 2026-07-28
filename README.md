@@ -30,11 +30,11 @@ The software executes a decoupled pipeline synchronized with NOAA's synoptic rel
 
 ```mermaid
 flowchart TD
-    A[NOAA Servers / AWS S3 / GCP] -->|Automated Cron Job / Herbie API| B[Backend: Python Ingestion Engine]
-    B -->|Gaussian Filter σ=1.0 & Bicubic Upscaling| C[PNG Encoding Module]
-    C -->|Stores Lossless 16 MB PNG Assets| D[Web Server Repository]
-    D -->|Static HTTP Asset Delivery| E[Frontend: MapLibre Engine]
-    E -->|HTML5 Canvas Particle Advection| F[60 FPS Interactive Dashboard]
+    A["NOAA Servers / AWS S3 / GCP"] -->|"Automated Cron Job / Herbie API"| B["Backend: Python Ingestion Engine"]
+    B -->|"Gaussian Filter (σ = 1.0) & Bicubic Upscaling"| C["PNG Encoding Module"]
+    C -->|"Stores Lossless 16 MB PNG Assets"| D["Web Server Repository"]
+    D -->|"Static HTTP Asset Delivery"| E["Frontend: MapLibre Engine"]
+    E -->|"HTML5 Canvas Particle Advection"| F["60 FPS Interactive Dashboard"]
 📋 System Requirements
 Component	Technology	Purpose
 Data Ingestion	herbie-data	Programmatic GRIB2 index parsing & HTTP byte-range retrieval
@@ -48,7 +48,7 @@ Bash
 git clone [https://github.com/ogogli/DatavizAmz.git](https://github.com/ogogli/DatavizAmz.git)
 cd DatavizAmz
 2. Environment Configuration
-Create and activate a isolated Python virtual environment:
+Create and activate an isolated Python virtual environment:
 Bash
 python3 -m venv venv
 source venv/bin/activate
