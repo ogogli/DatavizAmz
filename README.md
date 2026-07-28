@@ -12,32 +12,118 @@
 
 ## 🚀 Key Features
 
-* **Automated Data Pipeline:** Programmatically ingests NOAA Global Forecast System (GFS) data via the `Herbie` framework. Applied Gaussian filtering (`σ = 1.0`, `5x5` kernel) and bicubic interpolation smooth out spatial noise without degrading meteorological gradients.
-* **Lossless Vector Encoding:** Decomposes wind velocity into Zonal (`u`, East-West) and Meridional (`v`, North-South) vectors, encoding them into normalized **red and green** channels of 16 MB PNG containers.
+* **Automated Data Pipeline:** Programmatically ingests NOAA Global Forecast System (GFS) data via the `Herbie` framework. Applied Gaussian filtering ($\sigma = 1.0$, $5 \times 5$ kernel) and bicubic interpolation smooth out spatial noise without degrading meteorological gradients.
+* **Lossless Vector Encoding:** Decomposes wind velocity into Zonal ($u$, East-West) and Meridional ($v$, North-South) vectors, encoding them into normalized **red and green** channels of 16 MB PNG containers.
 * **Client-Side Particle Advection:** Animates up to 2,500 wind vectors with trailing fade effects directly in the browser at **60 FPS** using a hardware-accelerated **HTML5 Canvas API**.
 * **Zero CORS Overhead:** Co-locates the Python ingestion backend and single-file frontend on the same server instance to eliminate cross-origin request latency.
 
 ---
 
-## 🛠️ Architecture and Dataflow
+## 📁 Directory Structure
 
-The software executes a decoupled pipeline synchronized with NOAA's synoptic release windows:
+```text
+DatavizAmz/
+├── backend/
+│   ├── get_grib2.py          # Primary data ingestion, processing, and raster export script
+│   ├── utils.py              # Mathematical transformation and spatial filtering utilities
+│   └── requirements.txt      # Python dependencies for data pipeline
+├── frontend/
+│   ├── index.html            # Main WebGIS dashboard container
+│   ├── css/
+│   │   └── style.css         # UI layout and MapLibre overlay styling
+│   └── js/
+│       ├── app.js            # MapLibre map initialization and layer management
+│       └── wind_canvas.js    # HTML5 Canvas particle advection engine
+├── output/                   # Target directory for generated PNG rasters and metadata
+└── README.md                 # System documentation
+```
 
-* 📥 **1. Automated Ingestion:** Scheduled Python jobs fetch global grids from NOAA/AWS via the Herbie API.
-* ⚙️ **2. Backend Processing:** The engine applies Gaussian filters and upscales the matrices.
-* 📦 **3. Lossless Encoding:** Matrices are packed into static, lightweight 16 MB PNG graphic assets.
-* 🌐 **4. Static Delivery:** A standard web server seamlessly hosts and delivers the processed PNGs.
-* 💻 **5. Client Rendering:** The frontend reconstructs the vectors via HTML5 Canvas for fluid 60 FPS animation.
+---
+
+## 🔄 Backend-Frontend Relationship & Architecture
+
+DatavizAMZ employs a **decoupled producer-consumer architecture** synchronized with NOAA's synoptic release windows:
+
+1. **Backend (Data Producer):** Executes as a headless, scheduled pipeline. It ingests raw meteorological GRIB2 files from NOAA, computes array operations, maps vector components into normalized RGB channels, and writes static web-ready assets (`.png` and `.json`) to disk.
+2. **Frontend (Visual Consumer):** Runs entirely client-side in the user's browser. It asynchronously fetches the static PNG rasters and metadata from the web server. The HTML5 Canvas engine decodes RGBA pixel channels back into physical velocity vectors $(u, v)$ to drive real-time particle animation over MapLibre GL JS layers.
+
+```text
++------------------------+      Generates      +-------------------------+
+|  Backend (Python Engine) | -----------------> | Static PNG & JSON Assets|
++------------------------+                     +-------------------------+
+                                                            |
+                                    Fetched via HTTP        v
+                                               +--------------------------+
+                                               | Frontend (Browser/Canvas)|
+                                               +--------------------------+
+```
+
+---
+
+## ⚙️ Principal Functions & Processing Pipeline
+
+### Backend Modules (`backend/get_grib2.py`)
+* `fetch_gfs_data()`: Connects to NOAA AWS S3 mirrors using the `Herbie` framework to execute byte-range HTTP requests for 10 m Zonal ($u$) and Meridional ($v$) wind velocity components.
+* `apply_spatial_smoothing(data_array, sigma=1.0)`: Applies a 2D Gaussian filter kernel to spatial arrays via `scipy.ndimage.gaussian_filter` to attenuate grid noise while preserving synoptic gradients.
+* `encode_vectors_to_png(u_array, v_array, output_path)`: Normalizes continuous floating-point velocity vectors to an 8-bit integer range $[0, 255]$ and writes $u \rightarrow \text{Red}$ and $v \rightarrow \text{Green}$ channels into a lossless 16 MB PNG raster container.
+* `export_metadata(bounds, min_max_vals, output_path)`: Generates a JSON manifest containing spatial coordinate boundaries ($Lat_{min}, Lat_{max}, Lon_{min}, Lon_{max}$) and vector normalization extrema ($u_{min}, u_{max}, v_{min}, v_{max}$).
+
+### Frontend Engine (`frontend/js/wind_canvas.js`)
+* `fetchMetadataAndRaster()`: Loads the JSON manifest and PNG raster container into an offscreen HTML5 Canvas memory context.
+* `decodeRGBToVector(r, g)`: Converts 8-bit pixel channel values back into real physical velocities $(u, v)$ in m/s using linear interpolation against bounds defined in the metadata.
+* `updateParticles()`: Computes particle displacement using Euler integration ($x_{t+1} = x_t + u \cdot \Delta t$) and manages particle lifecycles (random re-seeding upon expiration).
+
+---
+
+## 🎛️ Configuration Parameters
+
+Key system parameters are defined in `backend/config.py` (or within `get_grib2.py`) and `frontend/js/wind_canvas.js`:
+
+| Parameter | Location | Default Value | Description |
+| :--- | :--- | :--- | :--- |
+| `GAUSSIAN_SIGMA` | Backend | `1.0` | Standard deviation ($\sigma$) for spatial smoothing filter kernel |
+| `KERNEL_SIZE` | Backend | `5x5` | Dimension matrix for Gaussian smoothing convolution |
+| `BOUNDS_AMAZON` | Backend | `[-20.0, 10.0, -80.0, -45.0]` | Geographic bounding box $[Lat_{min}, Lat_{max}, Lon_{min}, Lon_{max}]$ |
+| `PARTICLE_COUNT` | Frontend | `2500` | Maximum number of simultaneously animated wind particles |
+| `FADE_OPACITY` | Frontend | `0.96` | Canvas trail persistence factor for motion-blur particle paths |
+| `TARGET_FPS` | Frontend | `60` | Hardware-accelerated frame rate render target |
+
+---
+
+## 📊 Output Artifacts & File Specifications
+
+Each pipeline execution outputs two synchronized static files into the web root directory:
+
+1. **Vector PNG Container (`wind_current.png`):**
+   * **Dimensions:** Scalable grid resolution (e.g., $1440 \times 720$ pixels).
+   * **Color Encoding:** 
+     * **Red Channel ($R$):** Zonal velocity component ($u$, East-West).
+     * **Green Channel ($G$):** Meridional velocity component ($v$, North-South).
+     * **Blue/Alpha Channels ($B, A$):** Reserved for future scalar overlays (e.g., atmospheric pressure or humidity).
+2. **Metadata Manifest (`wind_current.json`):**
+   * Contains spatial extent bounding box and original physical velocity ranges required by the client decoder:
+   ```json
+   {
+     "updated_utc": "2026-07-28T05:30:00Z",
+     "bbox": [-20.0, 10.0, -80.0, -45.0],
+     "u_min": -28.5,
+     "u_max": 31.2,
+     "v_min": -25.0,
+     "v_max": 29.8
+   }
+   ```
 
 ---
 
 ## 📋 System Requirements
 
-* **Data Ingestion:** `herbie-data` (Programmatic GRIB2 index parsing & HTTP byte-range retrieval)
-* **Processing:** `numpy`, `xarray`, `scipy` (Spatial array operations & Gaussian filtering)
-* **Raster Export:** `matplotlib`, `imageio` (Normalized RGB channel encoding to PNG assets)
-* **Mapping Engine:** `MapLibre GL JS` (Client-side spatial layers and base map control)
-* **Vector Engine:** `HTML5 Canvas API` (Hardware-accelerated particle advection loop)
+| Component | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Data Ingestion** | `herbie-data` | Programmatic GRIB2 index parsing & HTTP byte-range retrieval |
+| **Processing** | `numpy`, `xarray`, `scipy` | Spatial array operations & Gaussian filtering |
+| **Raster Export** | `matplotlib`, `imageio` | Normalized RGB channel encoding to PNG assets |
+| **Mapping Engine** | `MapLibre GL JS` | Client-side spatial layers and base map control |
+| **Vector Engine** | `HTML5 Canvas API` | Hardware-accelerated particle advection loop |
 
 ---
 
@@ -45,7 +131,7 @@ The software executes a decoupled pipeline synchronized with NOAA's synoptic rel
 
 ### 1. Repository Setup
 ```bash
-git clone https://github.com/ogogli/DatavizAmz.git
+git clone [https://github.com/ogogli/DatavizAmz.git](https://github.com/ogogli/DatavizAmz.git)
 cd DatavizAmz
 ```
 
