@@ -78,40 +78,4 @@ Distributed under the Creative Commons Attribution 4.0 International (CC BY 4.0)
 © 2026, Osvaldo Gogliano Sobrinho. Official repository: github.com/ogogli/DatavizAmz
 👥 Acknowledgments
 Study and Research Group in Big Data (WDS) — University of São Paulo (USP)
-National Oceanic and Atmospheric Administration (NOAA) for open meteorological data access.Vector Engine	HTML5 Canvas API	Hardware-accelerated particle advection loop
-🔧 Installation & Setup
-1. Repository Setup
-Bash
-git clone [https://github.com/ogogli/DatavizAmz.git](https://github.com/ogogli/DatavizAmz.git)
-cd DatavizAmz
-2. Environment Configuration
-Create and activate an isolated Python virtual environment:
-Bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-Note: Ensure requirements.txt contains herbie-data, numpy, xarray, scipy, matplotlib, and imageio.
-3. Frontend Deployment
-Copy the contents of the frontend/ directory to your web server's public root:
-Bash
-cp -r frontend/* /var/www/html/datavizamz/
-4. Automation (Cron Job)
-Configure a Linux cron task to trigger automated pipeline executions following NOAA publication windows:
-Bash
-crontab -e
-Add the daily job definition (configured for 05:30 UTC to ingest the 00z forecast horizon):
-Snippet de código
-30 5 * * * /path/to/DatavizAmz/venv/bin/python /path/to/DatavizAmz/backend/get_grib2.py
-🤝 Contributing
-Contributions are welcome! Please follow these steps:
-Fork the Repository
-Create a Feature Branch (git checkout -b feature/AmazingFeature)
-Commit your Changes (git commit -m 'Add AmazingFeature')
-Push to the Branch (git push origin feature/AmazingFeature)
-Open a Pull Request
-📄 License & Citation
-Distributed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License.
-© 2026, Osvaldo Gogliano Sobrinho. Official repository: github.com/ogogli/DatavizAmz
-👥 Acknowledgments
-Study and Research Group in Big Data (WDS) — University of São Paulo (USP)
 National Oceanic and Atmospheric Administration (NOAA) for open meteorological data access.
