@@ -24,17 +24,17 @@ Markdown
 
 ---
 
-## 🛠️ Architecture & Dataflow
+## 🛠️ Architecture and Dataflow
 
 The software executes a decoupled pipeline synchronized with NOAA's synoptic release windows:
 
 ```mermaid
 flowchart TD
-    A["NOAA Servers / AWS S3 / GCP"] -->|"Automated Cron Job / Herbie API"| B["Backend: Python Ingestion Engine"]
-    B -->|"Gaussian Filter (σ = 1.0) & Bicubic Upscaling"| C["PNG Encoding Module"]
-    C -->|"Stores Lossless 16 MB PNG Assets"| D["Web Server Repository"]
-    D -->|"Static HTTP Asset Delivery"| E["Frontend: MapLibre Engine"]
-    E -->|"HTML5 Canvas Particle Advection"| F["60 FPS Interactive Dashboard"]
+    A["NOAA Servers and Cloud Mirrors"] -->|"Automated Ingestion"| B["Backend Python Engine"]
+    B -->|"Gaussian Filter and Bicubic Upscaling"| C["PNG Encoding Module"]
+    C -->|"Lossless 16 MB PNG Assets"| D["Web Server Repository"]
+    D -->|"Static HTTP Delivery"| E["Frontend MapLibre Engine"]
+    E -->|"HTML5 Canvas Rendering"| F["Interactive Dashboard"]
 📋 System Requirements
 Component	Technology	Purpose
 Data Ingestion	herbie-data	Programmatic GRIB2 index parsing & HTTP byte-range retrieval
