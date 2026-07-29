@@ -31,9 +31,9 @@ DatavizAmz/
 │   ├── css/
 │   │   └── style.css         # UI layout and MapLibre overlay styling
 │   └── js/
-│       ├── app.js            # MapLibre map initialization and layer management
-│       └── wind_canvas.js    # HTML5 Canvas particle advection engine
-├── output/                   # Target directory for generated PNG rasters and metadata
+│   |   └── dashboard.js      # MapLibre map initialization and layer management
+│   └── pngs/                 # Target directory for generated PNG rasters and metadata
+├── L(CENSE                   # MIT License file
 └── README.md                 # System documentation
 ```
 
