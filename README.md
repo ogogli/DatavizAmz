@@ -160,7 +160,43 @@ Add the daily job definition (configured for **05:30 UTC** to ingest the 00z for
 ```
 
 ---
+## 🛠️ Troubleshooting & Common Issues
 
+This section covers common runtime errors, dependency pitfalls, and troubleshooting steps for the backend ingestion pipeline and frontend WebGIS interface.
+
+---
+
+### 1. Backend Ingestion & Grib2 Ingestion Issues
+
+#### ❌ `Herbie / NOAA GFS Data Download Timeout`
+* **Symptom:** `Failed to download data for Frame X` or HTTP 404/503 errors during execution.
+* **Cause:** The NOAA NOMADS or AWS S3 data servers may experience temporary downtime, or the selected `MODEL_RUN_DATE` (e.g., today's `00:00 UTC` run) has not yet been fully published by NOAA (GFS runs usually take 3.5 to 4 hours to become available).
+* **Fix:** 
+  1. Check NOAA GFS status or test with yesterday's model run date by modifying `MODEL_RUN_DATE` in `get_grib2.py`.
+  2. Ensure your internet connection is active and not blocked by a strict firewall/VPN blocking HTTPS requests to AWS S3 buckets.
+
+#### ❌ `Missing C Libraries for GRIB2 Processing (eccodes / cfgrib)`
+* **Symptom:** `ValueError: unrecognized engine cfgrib` or `eccodes library not found`.
+* **Cause:** `xarray` relies on `cfgrib` and the underlying C library `eccodes` to parse raw GRIB2 files.
+* **Fix:**
+  * **Mac (Homebrew):** 
+    ```bash
+    brew install eccodes
+    pip install cfgrib
+    ```
+  * **Conda Environment (Recommended for GRIB2 dependencies):**
+    ```bash
+    conda install -c conda-forge eccodes cfgrib
+    ```
+
+#### ❌ `FileNotFoundError: [Errno 2] No such file or directory: '../frontend/pngs'`
+* **Symptom:** Script fails when attempting to save exported raster PNGs.
+* **Cause:** The output directory relative path does not exist or lacks write permissions.
+* **Fix:**
+  The pipeline automatically attempts to create this directory using `os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)`. Ensure you are running the script from inside the `backend/` folder:
+  ```bash
+  cd backend
+  python get_grib2.py
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
