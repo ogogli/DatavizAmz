@@ -31,7 +31,7 @@ DatavizAmz/
 │   ├── css/
 │   │   └── style.css         # UI layout and MapLibre overlay styling
 │   └── js/
-│   |   └── dashboard.js      # MapLibre map initialization and layer management
+│   |   └── dashboard.js      # MapLibre map initialization, layer management and wind Canvas
 │   └── pngs/                 # Target directory for generated PNG rasters and metadata
 ├── L(CENSE                   # MIT License file
 └── README.md                 # System documentation
