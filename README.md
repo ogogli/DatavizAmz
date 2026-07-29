@@ -43,7 +43,7 @@ DatavizAmz/
 
 DatavizAMZ employs a **decoupled producer-consumer architecture** synchronized with NOAA's synoptic release windows:
 
-1. **Backend (Data Producer):** Executes as a headless, scheduled pipeline. It ingests raw meteorological GRIB2 files from NOAA, computes array operations, maps vector components into normalized RGB channels, and writes static web-ready assets (`.png` and `.json`) to disk.
+1. **Backend (Data Producer):** Executes as a headless, scheduled pipeline. It ingests raw meteorological GRIB2 files from NOAA, computes array operations, maps vector components into normalized RGB channels, and writes static web-ready assets (`.png') to disk.
 2. **Frontend (Visual Consumer):** Runs entirely client-side in the user's browser. It asynchronously fetches the static PNG rasters and metadata from the web server. The HTML5 Canvas engine decodes RGBA pixel channels back into physical velocity vectors $(u, v)$ to drive real-time particle animation over MapLibre GL JS layers.
 
 ```text
