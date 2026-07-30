@@ -94,24 +94,12 @@ Key system parameters are defined in `backend/config.py` (or within `get_grib2.p
 
 Each pipeline execution outputs two synchronized static files into the web root directory:
 
-1. **Vector PNG Container (`wind_current.png`):**
+1. **Several Vector PNG Containers (`amazon_[climate_parameter]_[hour].png`):**
    * **Dimensions:** Scalable grid resolution (e.g., $1440 \times 720$ pixels).
    * **Color Encoding:** 
      * **Red Channel ($R$):** Zonal velocity component ($u$, East-West).
      * **Green Channel ($G$):** Meridional velocity component ($v$, North-South).
      * **Blue/Alpha Channels ($B, A$):** Reserved for future scalar overlays (e.g., atmospheric pressure or humidity).
-2. **Metadata Manifest (`wind_current.json`):**
-   * Contains spatial extent bounding box and original physical velocity ranges required by the client decoder:
-   ```json
-   {
-     "updated_utc": "2026-07-28T05:30:00Z",
-     "bbox": [-20.0, 10.0, -80.0, -45.0],
-     "u_min": -28.5,
-     "u_max": 31.2,
-     "v_min": -25.0,
-     "v_max": 29.8
-   }
-   ```
 
 ---
 
