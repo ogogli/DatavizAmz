@@ -119,7 +119,7 @@ Each pipeline execution outputs two synchronized static files into the web root 
 
 ### 1. Repository Setup
 ```bash
-git clone [https://github.com/ogogli/DatavizAmz.git](https://github.com/ogogli/DatavizAmz.git)
+git clone https://github.com/ogogli/DatavizAmz.git
 cd DatavizAmz
 ```
 
