@@ -194,7 +194,9 @@ This section covers common runtime errors, dependency pitfalls, and troubleshoot
   * **Conda Environment (Recommended multi-platform alternative):**
     ```bash
     conda install -c conda-forge eccodes cfgrib
-    ```    
+    ```
+  * **NOTE: The authors have tested DatavizAmz only on Ubuntu 22 and macOS 26.5.2, but strongly believe it can run on other Linux versions.**
+     
 #### ❌ `FileNotFoundError: [Errno 2] No such file or directory: '../frontend/pngs'`
 * **Symptom:** Script fails when attempting to save exported raster PNGs.
 * **Cause:** The output directory relative path does not exist or lacks write permissions.
