@@ -170,16 +170,31 @@ This section covers common runtime errors, dependency pitfalls, and troubleshoot
 * **Symptom:** `ValueError: unrecognized engine cfgrib` or `eccodes library not found`.
 * **Cause:** `xarray` relies on `cfgrib` and the underlying C library `eccodes` to parse raw GRIB2 files.
 * **Fix:**
+  * **Linux (Debian / Ubuntu - without Conda):**
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y libeccodes-dev libeccodes-tools
+    pip install cfgrib
+    ```
+  * **Linux (Fedora / RHEL):**
+    ```bash
+    sudo dnf install eccodes eccodes-devel
+    pip install cfgrib
+    ```
+  * **Linux (Arch Linux):**
+    ```bash
+    sudo pacman -S eccodes
+    pip install cfgrib
+    ```
   * **Mac (Homebrew):** 
     ```bash
     brew install eccodes
     pip install cfgrib
     ```
-  * **Conda Environment (Recommended for GRIB2 dependencies):**
+  * **Conda Environment (Recommended multi-platform alternative):**
     ```bash
     conda install -c conda-forge eccodes cfgrib
-    ```
-
+    ```    
 #### ❌ `FileNotFoundError: [Errno 2] No such file or directory: '../frontend/pngs'`
 * **Symptom:** Script fails when attempting to save exported raster PNGs.
 * **Cause:** The output directory relative path does not exist or lacks write permissions.
