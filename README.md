@@ -134,11 +134,11 @@ pip install -r requirements.txt
 
 ### 3. Frontend Deployment
 Copy the contents of the `frontend/` directory to your web server's public root:
-Alternatively, configure the /frontend folder to be the web server public root.
 
 ###
 ```bash
 cp -r frontend/* /var/www/html/datavizamz/
+# Alternatively, configure the /frontend folder to be the web server public root.
 ```
  4. Automation (Cron Job)
 Configure a Linux cron task to trigger automated pipeline executions following NOAA publication windows:
