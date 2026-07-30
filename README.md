@@ -26,7 +26,7 @@ DatavizAmz/
 │   ├── get_grib2.py          # Primary data ingestion, processing, and raster export script
 │   ├── utils.py              # Mathematical transformation and spatial filtering utilities
 │   ├── requirements.txt      # Python dependencies for data pipeline
-│   └── cron_output.log       # Output log generated after each get_grib2.py run
+│   └── cron_output.log       # Output log generated after each cron run
 ├── frontend/
 │   ├── index.html            # Main WebGIS dashboard container
 │   ├── css/
@@ -100,7 +100,7 @@ Each pipeline execution outputs two synchronized static files into the web root 
      * **Red Channel ($R$):** Zonal velocity component ($u$, East-West).
      * **Green Channel ($G$):** Meridional velocity component ($v$, North-South).
      * **Blue/Alpha Channels ($B, A$):** Reserved for future scalar overlays (e.g., atmospheric pressure or humidity).
-
+2. **Output log generated after each cron run (`backend/cron_output.log`):**
 ---
 
 ## 📋 System Requirements
