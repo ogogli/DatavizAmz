@@ -34,6 +34,8 @@ DatavizAmz/
 │   └── js/
 │   |   └── dashboard.js      # MapLibre map initialization, layer management and wind Canvas
 │   └── pngs/                 # Target directory for generated PNG rasters and metadata
+├── tests/
+│   ├── test_pipeine.py       # Unitary test or get_grib2.py
 ├── L(CENSE                   # MIT License file
 └── README.md                 # System documentation
 ```
