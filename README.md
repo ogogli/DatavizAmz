@@ -25,7 +25,8 @@ DatavizAmz/
 ├── backend/
 │   ├── get_grib2.py          # Primary data ingestion, processing, and raster export script
 │   ├── utils.py              # Mathematical transformation and spatial filtering utilities
-│   └── requirements.txt      # Python dependencies for data pipeline
+│   ├── requirements.txt      # Python dependencies for data pipeline
+│   └── cron_output.log       # Output log generated after each get_grib2.py run
 ├── frontend/
 │   ├── index.html            # Main WebGIS dashboard container
 │   ├── css/
