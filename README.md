@@ -140,6 +140,11 @@ Copy the contents of the `frontend/` directory to your web server's public root:
 cp -r frontend/* /var/www/html/datavizamz/
 # Alternatively, configure the /frontend folder to be the web server public root.
 ```
+ 3. Running the backend on the terminal (not recommend, see item 4, below)
+```
+python backend/get_grib2.py
+# or python3 backend/get_grib2.py depending on how Python 3 was installed
+```
  4. Automation (Cron Job)
 Configure a Linux cron task to trigger automated pipeline executions following NOAA publication windows:
 ```bash
