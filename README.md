@@ -62,19 +62,17 @@ DatavizAMZ employs a **producer-consumer architecture** synchronized with NOAA's
 
 ---
 
-## ⚙️ Principal Functions & Processing Pipeline
+## ⚙️ Core Functions & Processing Pipeline
 
-### Backend Modules (`backend/get_grib2.py`)
-* `fetch_gfs_data()`: Connects to NOAA AWS S3 mirrors using the `Herbie` framework to execute byte-range HTTP requests for 10 m Zonal ($u$) and Meridional ($v$) wind velocity components.
-* `apply_spatial_smoothing(data_array, sigma=1.0)`: Applies a 2D Gaussian filter kernel to spatial arrays via `scipy.ndimage.gaussian_filter` to attenuate grid noise while preserving synoptic gradients.
-* `encode_vectors_to_png(u_array, v_array, output_path)`: Normalizes continuous floating-point velocity vectors to an 8-bit integer range $[0, 255]$ and writes $u \rightarrow \text{Red}$ and $v \rightarrow \text{Green}$ channels into a lossless 16 MB PNG raster container.
-* `export_metadata(bounds, min_max_vals, output_path)`: Generates a JSON manifest containing spatial coordinate boundaries ($Lat_{min}, Lat_{max}, Lon_{min}, Lon_{max}$) and vector normalization extrema ($u_{min}, u_{max}, v_{min}, v_{max}$).
+### Backend Pipeline (`backend/get_grib2.py` & `backend/utils.py`)
+* **NOAA Ingestion (`backend/get_grib2.py`):** Connects to NOAA AWS S3 / NOMADS endpoints using the `Herbie` framework to fetch GFS 0.25° GRIB2 sub-regions for 10m zonal ($u$) and meridional ($v$) wind vectors, 2m temperature, and precipitation rates.
+* `apply_gaussian_smoothing(ds, sigma=1.0)` (`backend/utils.py`): Applies a 2D Gaussian filter via `scipy.ndimage.gaussian_filter` across spatial arrays to attenuate grid noise while preserving synoptic gradients.
+* `encode_wind_vectors(u, v)` (`backend/utils.py`): Normalizes continuous floating-point velocity vectors into an 8-bit RGBA integer array $[0, 255]$ for $u \rightarrow \text{Red}$ and $v \rightarrow \text{Green}$ channels, exported as PNG assets.
 
-### Frontend Engine (`frontend/js/wind_canvas.js`)
-* `fetchMetadataAndRaster()`: Loads the JSON manifest and PNG raster container into an offscreen HTML5 Canvas memory context.
-* `decodeRGBToVector(r, g)`: Converts 8-bit pixel channel values back into real physical velocities $(u, v)$ in m/s using linear interpolation against bounds defined in the metadata.
-* `updateParticles()`: Computes particle displacement using Euler integration ($x_{t+1} = x_t + u \cdot \Delta t$) and manages particle lifecycles (random re-seeding upon expiration).
-
+### Frontend Engine (`frontend/js/dashboard.js`)
+* **Data Ingestion:** Loads pre-processed PNG vector rasters and metadata JSON into HTML5 Canvas / WebGL contexts.
+* **Vector Decoding:** Reconstructs continuous velocity fields $(u, v)$ in $\text{m/s}$ from RGBA pixel channels using metadata boundary scaling factors.
+* **Particle Advection:** Computes particle displacement across frame updates via Euler integration ($x_{t+1} = x_t + u \cdot \Delta t$) with dynamic lifecycle re-seeding.
 ---
 
 ## 🎛️ Configuration Parameters
