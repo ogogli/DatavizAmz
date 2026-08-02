@@ -149,6 +149,7 @@ Calling `export_frontend_metadata()` generates `frontend/metadata.json`, synchro
     "interval_hours": 1
   }
 }
+```
 ---
 
 ### 📊 Output Artifacts & File Specifications
