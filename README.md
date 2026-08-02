@@ -26,6 +26,7 @@ DatavizAmz/
 │   ├── get_grib2.py          # Primary data ingestion, processing, and raster export script
 │   ├── utils.py              # Mathematical transformation and spatial filtering utilities
 │   ├── requirements.txt      # Python dependencies for data pipeline
+|   ├── config.py             # Config variables 
 │   └── cron_output.log       # Output log generated after each cron run
 ├── frontend/
 │   ├── index.html            # Main WebGIS dashboard container
@@ -33,7 +34,8 @@ DatavizAmz/
 │   │   └── style.css         # UI layout and MapLibre overlay styling
 │   └── js/
 │   |   └── dashboard.js      # MapLibre map initialization, layer management and wind Canvas
-│   └── pngs/                 # Target directory for generated PNG rasters and metadata
+│   ├── metadata.json         # Config variables for js (generated after running get_grib2.py)
+|   └── pngs/                 # Target directory for generated PNG rasters and metadata
 ├── tests/
 │   ├── test_pipeine.py       # Unitary test or get_grib2.py
 ├── L(CENSE                   # MIT License file
