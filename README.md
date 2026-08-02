@@ -151,7 +151,7 @@ Calling `export_frontend_metadata()` generates `frontend/metadata.json`, synchro
 }
 ---
 
-## 📊 Output Artifacts & File Specifications
+### 📊 Output Artifacts & File Specifications
 
 Each pipeline execution outputs two synchronized static files into the web root directory:
 
