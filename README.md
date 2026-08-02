@@ -77,19 +77,78 @@ DatavizAMZ employs a **producer-consumer architecture** synchronized with NOAA's
 * **Particle Advection:** Computes particle displacement across frame updates via Euler integration ($x_{t+1} = x_t + u \cdot \Delta t$) with dynamic lifecycle re-seeding.
 ---
 
-## 🎛️ Configuration Parameters
+## ⚙️ Configuration Parameters
 
-Key system parameters are defined in `backend/config.py` (or within `get_grib2.py`) and `frontend/js/wind_canvas.js`:
+The backend pipeline uses `config.py` as the **single source of truth** for geographic spatial boundaries, grid interpolation, display canvas sizing, and forecast output settings. Modifying primary inputs automatically updates all derived matrix calculations and client-side metadata manifests.
 
-| Parameter | Location | Default Value | Description |
-| :--- | :--- | :--- | :--- |
-| `GAUSSIAN_SIGMA` | Backend | `1.0` | Standard deviation ($\sigma$) for spatial smoothing filter kernel |
-| `KERNEL_SIZE` | Backend | `5x5` | Dimension matrix for Gaussian smoothing convolution |
-| `BOUNDS_AMAZON` | Backend | `[-20.0, 10.0, -80.0, -45.0]` | Geographic bounding box $[Lat_{min}, Lat_{max}, Lon_{min}, Lon_{max}]$ |
-| `PARTICLE_COUNT` | Frontend | `2500` | Maximum number of simultaneously animated wind particles |
-| `FADE_OPACITY` | Frontend | `0.96` | Canvas trail persistence factor for motion-blur particle paths |
-| `TARGET_FPS` | Frontend | `60` | Hardware-accelerated frame rate render target |
+---
 
+### 📍 Primary Geographic Inputs
+
+Primary bounds define the Amazon Basin region. Longitudes are defined using NOAA GFS 0° to 360° coordinate system ($360^\circ - \text{Longitude W}$).
+
+| Parameter | Default Value | Description |
+| :--- | :--- | :--- |
+| `LAT_MIN` | `-12.125°` | Southern latitude boundary |
+| `LAT_MAX` | `4.125°` | Northern latitude boundary |
+| `LON_MIN` | `285.875°` | Western longitude boundary ($74.125^\circ\text{W}$) |
+| `LON_MAX` | `314.125°` | Eastern longitude boundary ($45.875^\circ\text{W}$) |
+| `RAW_GRID_STEP` | `0.25°` | Native GFS dataset resolution (~28 km spacing) |
+| `INTERPOLATED_STEP` | `0.0625°` | Upscaled spatial grid resolution (~7 km spacing) |
+
+---
+
+### 🖼️ Derived Spatial & Canvas Variables
+
+To eliminate spatial skewing or distortion when rendering WebGIS map overlays, canvas height is dynamically computed using the spatial aspect ratio:
+
+$$\text{Aspect Ratio} = \frac{\Delta \text{LAT}}{\Delta \text{LON}} = \frac{|4.125 - (-12.125)|}{|314.125 - 285.875|} = \frac{16.25^\circ}{28.25^\circ} \approx 0.5752$$
+
+* **Target Canvas Width (`TARGET_CANVAS_WIDTH`):** `1000 px`
+* **Calculated Canvas Height (`CANVAS_HEIGHT`):** `575 px`
+* **Raw Matrix Shape (`RAW_LAT_COUNT` x `RAW_LON_COUNT`):** $66 \times 114$ grid points
+* **Interpolated Matrix Shape (`INTERPOLATED_LAT_COUNT` x `INTERPOLATED_LON_COUNT`):** $261 \times 453$ grid points
+
+---
+
+### ⏱️ Forecast & Export Settings
+
+| Parameter | Default Value | Description |
+| :--- | :--- | :--- |
+| `TOTAL_FRAMES` | `48` | Total forecast lead-time hours (`+0h` to `+47h`) |
+| `FORECAST_INTERVAL` | `1` | Hourly step between forecast frames |
+| `OUTPUT_PNG_DIR` | `frontend/pngs` | Output directory for web raster layers |
+| `METADATA_JSON_PATH` | `frontend/metadata.json` | Manifest path for WebGL/HTML5 canvas sync |
+
+---
+
+### 🔄 Metadata Manifest Export
+
+Calling `export_frontend_metadata()` generates `frontend/metadata.json`, synchronizing client-side WebGL maps with backend bounding boxes:
+
+```json
+{
+  "bbox": {
+    "lat_min": -12.125,
+    "lat_max": 4.125,
+    "lon_min": 285.875,
+    "lon_max": 314.125,
+    "webgis_bounds": [285.875, -12.125, 314.125, 4.125]
+  },
+  "canvas": {
+    "width": 1000,
+    "height": 575,
+    "aspect_ratio": 0.5752
+  },
+  "grid": {
+    "raw_dimensions": [66, 114],
+    "interpolated_dimensions": [261, 453]
+  },
+  "forecast": {
+    "total_frames": 48,
+    "interval_hours": 1
+  }
+}
 ---
 
 ## 📊 Output Artifacts & File Specifications
