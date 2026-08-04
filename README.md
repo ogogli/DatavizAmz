@@ -37,7 +37,7 @@ DatavizAmz/
 │   ├── metadata.json         # Config variables for js (generated after running get_grib2.py)
 |   └── pngs/                 # Target directory for generated PNG rasters and metadata
 ├── tests/
-│   ├── test_pipeine.py       # Unitary test or get_grib2.py
+│   ├── test_pipeine.py       # Unitary test of get_grib2.py
 ├── L(CENSE                   # MIT License file
 └── README.md                 # System documentation
 ```
