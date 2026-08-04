@@ -13,7 +13,7 @@
 
 * **Automated Data Pipeline:** Programmatically ingests NOAA Global Forecast System (GFS) data via the `Herbie` framework. Applied Gaussian filtering ($\sigma = 1.0$, $5 \times 5$ kernel) and bicubic interpolation smooth out spatial noise without degrading meteorological gradients.
 * **Lossless Vector Encoding:** Decomposes wind velocity into Zonal ($u$, East-West) and Meridional ($v$, North-South) vectors, encoding them into normalized **red and green** channels of ~16 MB PNG containers.
-* **Client-Side Particle Advection:** Animates up to 2,500 wind vectors with trailing fade effects directly in the browser at **60 FPS** using a hardware-accelerated **HTML5 Canvas API**.
+* **Client-Side Particle Advection:** Animates wind vectors with trailing fade effects directly in the browser at **60 FPS** using a hardware-accelerated **HTML5 Canvas API**.
 * **Zero CORS Overhead:** Co-locates the Python ingestion backend and single-file frontend on the same server instance to eliminate cross-origin request latency.
 
 ---
