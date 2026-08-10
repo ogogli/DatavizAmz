@@ -1,0 +1,4 @@
+venv/
+tests/__pycache__
+frontend/pngs/
+backend/__pycache__
