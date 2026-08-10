@@ -27,7 +27,7 @@ INTERPOLATED_STEP = 0.0625    # High-resolution web grid (0.0625° / ~7 km)
 TARGET_CANVAS_WIDTH = 1000
 
 # Forecast Configuration
-TOTAL_FRAMES = 3              # Number of forecast lead-time hours (f000 to f047)
+TOTAL_FRAMES = 48             # Number of forecast lead-time hours (f000 to f047)
 FORECAST_INTERVAL = 1         # Hour step between frames
 
 # Number of wind particles for animation
