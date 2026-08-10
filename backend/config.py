@@ -6,6 +6,9 @@ Modifying primary geographic coordinates will automatically update all derived p
 import os
 import json
 
+# config.py folder
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # ==============================================================================
 # 1. PRIMARY INPUTS (Change these to modify the region or resolution)
 # ==============================================================================
@@ -24,7 +27,7 @@ INTERPOLATED_STEP = 0.0625    # High-resolution web grid (0.0625° / ~7 km)
 TARGET_CANVAS_WIDTH = 1000
 
 # Forecast Configuration
-TOTAL_FRAMES = 48             # Number of forecast lead-time hours (f000 to f047)
+TOTAL_FRAMES = 3              # Number of forecast lead-time hours (f000 to f047)
 FORECAST_INTERVAL = 1         # Hour step between frames
 
 # Number of wind particles for animation
@@ -64,8 +67,8 @@ BBOX_SLICES = {
 WEBGIS_BBOX = [LON_MIN, LAT_MIN, LON_MAX, LAT_MAX]
 
 # Default File Paths
-OUTPUT_PNG_DIR = "frontend/pngs"
-METADATA_JSON_PATH = "frontend/metadata.json"
+OUTPUT_PNG_DIR = os.path.abspath(os.path.join(BASE_DIR, "../frontend/pngs"))
+METADATA_JSON_PATH = os.path.abspath(os.path.join(BASE_DIR, "../frontend/metadata.json"))
 
 # ==============================================================================
 # 3. METADATA EXPORT FUNCTION
@@ -101,7 +104,13 @@ def export_frontend_metadata(output_path: str = METADATA_JSON_PATH) -> dict:
         },
     }
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    os.makedirs(os.path.dirname(METADATA_JSON_PATH), exist_ok=True)    
+    with open(METADATA_JSON_PATH, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2)
+
+    print(f"📍 metadata.json exported succesfully in: {METADATA_JSON_PATH}")
+
+
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
