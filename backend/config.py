@@ -73,7 +73,6 @@ METADATA_JSON_PATH = os.path.abspath(os.path.join(BASE_DIR, "../frontend/metadat
 # ==============================================================================
 # 3. METADATA EXPORT FUNCTION
 # ==============================================================================
-
 def export_frontend_metadata(output_path: str = METADATA_JSON_PATH) -> dict:
     """
     Exports a JSON manifest to the frontend directory so HTML5/WebGL layers
@@ -104,15 +103,14 @@ def export_frontend_metadata(output_path: str = METADATA_JSON_PATH) -> dict:
         },
     }
 
-    os.makedirs(os.path.dirname(METADATA_JSON_PATH), exist_ok=True)    
-    with open(METADATA_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent=2)
-
-    print(f"📍 metadata.json exported succesfully in: {METADATA_JSON_PATH}")
-
-
+    # Cria a pasta caso não exista, usando o caminho recebido no parâmetro
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)    
+    
+    # Salva o arquivo uma única vez no destino correto
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
+
+    print(f"📍 metadata.json exported successfully in: {output_path}")
 
     return metadata
 

@@ -15,55 +15,90 @@ import os
 import sys
 import warnings
 from datetime import datetime
+import imageio.v3 as imageio
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-import imageio
 from herbie import Herbie
 
-# Custom imports
-from config import LAT_MIN, LAT_MAX, LON_MIN, LON_MAX, TOTAL_FRAMES, export_frontend_metadata
-from utils import apply_gaussian_smoothing, build_rain_rgba_mask, encode_wind_vectors
+# Custom imports - Importa dimensões diretas do config.py
+from config import (
+    LAT_MIN, LAT_MAX, LON_MIN, LON_MAX, 
+    INTERPOLATED_LAT_COUNT, INTERPOLATED_LON_COUNT,
+    TOTAL_FRAMES, export_frontend_metadata
+)
+from utils import apply_gaussian_smoothing, build_rain_rgba_mask
 
 # Suppress unnecessary non-critical warnings
 warnings.filterwarnings('ignore')
 matplotlib.use('Agg')
 
 
-def crop_bbox(ds, lat_min=LAT_MIN, lat_max=LAT_MAX, lon_min=LON_MIN, lon_max=LON_MAX):
-    """
-    Crops dataset dynamically handling ascending or descending coordinate orientations.
-    """
-    lat_name = "latitude" if "latitude" in ds.coords else "lat"
-    lon_name = "longitude" if "longitude" in ds.coords else "lon"
-
-    # Determine latitude slice direction
-    if ds[lat_name].values[0] > ds[lat_name].values[-1]:
-        lat_slice = slice(lat_max, lat_min)  # Descending
-    else:
-        lat_slice = slice(lat_min, lat_max)  # Ascending
-
-    # Determine longitude slice direction
-    if ds[lon_name].values[0] > ds[lon_name].values[-1]:
-        lon_slice = slice(lon_max, lon_min)
-    else:
-        lon_slice = slice(lon_min, lon_max)
-
-    return ds.sel({lat_name: lat_slice, lon_name: lon_slice})
-
-
 # Pipeline timing configuration
 current_time = datetime.utcnow()
 MODEL_RUN_DATE = datetime(current_time.year, current_time.month, current_time.day, 0, 0)
-OUTPUT_DIRECTORY = "../frontend/pngs"
+
+
+def sanitize_and_crop(da: xr.DataArray) -> xr.DataArray:
+    """
+    Standardizes coordinate names, normalizes longitude system (-180..180 vs 0..360)
+    to match config.py, sorts axes monotonically, and crops to the target bounding box.
+    """
+    if da is None:
+        return None
+
+    da = da.squeeze()
+
+    # 1. Identifica e padroniza os nomes das coordenadas para 'lat' e 'lon'
+    lat_col = "latitude" if "latitude" in da.coords else ("lat" if "lat" in da.coords else None)
+    lon_col = "longitude" if "longitude" in da.coords else ("lon" if "lon" in da.coords else None)
+
+    if not lat_col or not lon_col:
+        return None
+
+    rename_dict = {}
+    if lat_col != "lat":
+        rename_dict[lat_col] = "lat"
+    if lon_col != "lon":
+        rename_dict[lon_col] = "lon"
+
+    if rename_dict:
+        da = da.rename(rename_dict)
+
+    # Remove coordenadas extras não espaciais (heightAboveGround, surface, etc.)
+    coords_to_drop = [c for c in da.coords if c not in ["lat", "lon"]]
+    da = da.drop_vars(coords_to_drop, errors="ignore")
+
+    # 2. Normaliza o sistema de longitude com base no LON_MIN do config.py
+    if LON_MIN < 0:
+        if float(da["lon"].max()) > 180:
+            lon_180 = ((da["lon"] + 180) % 360) - 180
+            da = da.assign_coords(lon=lon_180)
+    else:
+        if float(da["lon"].min()) < 0:
+            lon_360 = da["lon"] % 360
+            da = da.assign_coords(lon=lon_360)
+
+    # 3. Reordena as coordenadas para garantir eixos estritamente crescentes
+    da = da.sortby("lat").sortby("lon")
+
+    # 4. Ajusta os limites de recorte garantindo compatibilidade com a grade
+    lats = da["lat"].values
+    lons = da["lon"].values
+
+    lat_sub_min = max(float(lats.min()), min(LAT_MIN, LAT_MAX))
+    lat_sub_max = min(float(lats.max()), max(LAT_MIN, LAT_MAX))
+    lon_sub_min = max(float(lons.min()), min(LON_MIN, LON_MAX))
+    lon_sub_max = min(float(lons.max()), max(LON_MIN, LON_MAX))
+
+    return da.sel(lat=slice(lat_sub_min, lat_sub_max), lon=slice(lon_sub_min, lon_sub_max))
 
 
 def process_frame(frame_idx: int) -> bool:
     """Fetches, processes, and exports raster assets for a single forecast frame."""
     print(f"\nProcessing frame {frame_idx} (Forecast Lead Time: +{frame_idx}h)...")
 
-    # Garante o caminho absoluto para a pasta de saída
     script_dir = os.path.dirname(os.path.abspath(__file__))
     output_directory = os.path.abspath(os.path.join(script_dir, "../frontend/pngs"))
 
@@ -79,11 +114,12 @@ def process_frame(frame_idx: int) -> bool:
         print(f"Error initializing Herbie for Frame {frame_idx}: {e}")
         return False
 
-    ds_gfs = xr.Dataset()
+    raw_extracted = {}
 
+    # REGEX RIGOROSO: "above ground" previne a captura indesejada do nível de pressão "2 mb" (estratosfera)
     search_patterns = [
-        r":UGRD:10 m|:VGRD:10 m",
-        r":TMP:2 m|:RH:2 m",
+        r":UGRD:10 m above ground|:VGRD:10 m above ground",
+        r":TMP:2 m above ground|:RH:2 m above ground",
         r":GUST:surface",
         r":PRATE:surface"
     ]
@@ -95,69 +131,62 @@ def process_frame(frame_idx: int) -> bool:
                 dataset_list = [dataset_list]
 
             for chunk_ds in dataset_list:
-                # Ajusta coordenadas de longitude para o formato 0..360 caso venham como -180..180
-                lon_name = "longitude" if "longitude" in chunk_ds.coords else "lon"
-                if float(chunk_ds[lon_name].min()) < 0 and LON_MIN > 180:
-                    chunk_ds[lon_name] = chunk_ds[lon_name] % 360
-
-                ds_cropped = crop_bbox(chunk_ds)
-
-                for target_var in ds_cropped.data_vars:
+                for target_var in chunk_ds.data_vars:
                     var_lower = str(target_var).lower()
+                    da_clean = sanitize_and_crop(chunk_ds[target_var])
 
-                    if var_lower in ['u10', 'u10m', 'u']:
-                        ds_gfs['u10'] = ds_cropped[target_var].squeeze()
-                    elif var_lower in ['v10', 'v10m', 'v']:
-                        ds_gfs['v10'] = ds_cropped[target_var].squeeze()
+                    if da_clean is None or da_clean.size == 0:
+                        continue
+
+                    if var_lower in ['u10', 'u10m', 'u', 'ugrd']:
+                        raw_extracted['u10'] = da_clean
+                    elif var_lower in ['v10', 'v10m', 'v', 'vgrd']:
+                        raw_extracted['v10'] = da_clean
                     elif 'gust' in var_lower:
-                        ds_gfs['gust'] = ds_cropped[target_var].squeeze() * 3.6
+                        raw_extracted['gust'] = da_clean * 3.6
                     elif 'prate' in var_lower:
-                        ds_gfs['prate'] = ds_cropped[target_var].squeeze() * 3600
+                        raw_extracted['prate'] = da_clean * 3600
                     elif var_lower in ['tmp', 't2m', 't', '2t'] or 'temp' in var_lower:
-                        kelvin_vals = ds_cropped[target_var].squeeze()
-                        ds_gfs['tmp'] = kelvin_vals - 273.15 if float(kelvin_vals.max()) > 150 else kelvin_vals
-                    elif var_lower in ['rh', 'r2', 'r', '2r'] or 'humidity' in var_lower:
-                        ds_gfs['rh'] = ds_cropped[target_var].squeeze()
+                        mean_k = float(da_clean.mean(skipna=True).values)
+                        if mean_k > 150:
+                            da_clean = da_clean - 273.15
+                        raw_extracted['tmp'] = da_clean
+                    elif var_lower in ['rh', 'r2', 'r', '2r', 'relative_humidity'] or 'humidity' in var_lower:
+                        raw_extracted['rh'] = da_clean
 
         except Exception as e:
             print(f"Warning: Exception encountered fetching '{pattern}' for Frame {frame_idx}: {e}")
 
-    # Fallback para precipitação (Frame 0)
-    if 'prate' not in ds_gfs.data_vars:
-        existing_vars = list(ds_gfs.data_vars)
-        if existing_vars:
-            ds_gfs['prate'] = xr.zeros_like(ds_gfs[existing_vars[0]])
-        else:
-            print(f"Error: No valid data variables decoded for Frame {frame_idx}")
-            return False
+    if not raw_extracted:
+        print(f"Error: No valid data variables extracted for Frame {frame_idx}")
+        return False
 
-    # Ajuste de coordenadas
-    lat_name = "latitude" if "latitude" in ds_gfs.coords else "lat"
-    lon_name = "longitude" if "longitude" in ds_gfs.coords else "lon"
-    
-    ds_gfs = ds_gfs.sortby(lat_name).sortby(lon_name)
+    # Fallback para Precipitação no Frame 0
+    if 'prate' not in raw_extracted:
+        first_ref = list(raw_extracted.values())[0]
+        raw_extracted['prate'] = xr.zeros_like(first_ref)
 
-    lat_start, lat_end = float(ds_gfs[lat_name].values[0]), float(ds_gfs[lat_name].values[-1])
-    lon_start, lon_end = float(ds_gfs[lon_name].values[0]), float(ds_gfs[lon_name].values[-1])
-    
-    num_lats, num_lons = int(ds_gfs[lat_name].size * 4), int(ds_gfs[lon_name].size * 4)
-    target_lats = np.linspace(lat_start, lat_end, num_lats)
-    target_lons = np.linspace(lon_start, lon_end, num_lons)
+    # --- DEFINIÇÃO DA GRADE ALVO BASEADA NO CONFIG.PY ---
+    target_lats = np.linspace(min(LAT_MIN, LAT_MAX), max(LAT_MIN, LAT_MAX), INTERPOLATED_LAT_COUNT)
+    target_lons = np.linspace(min(LON_MIN, LON_MAX), max(LON_MIN, LON_MAX), INTERPOLATED_LON_COUNT)
+    interp_coords = {"lat": target_lats, "lon": target_lons}
 
-    interp_coords = {lat_name: target_lats, lon_name: target_lons}
+    # Interpolação individual por variável
+    ds_interpolated = xr.Dataset()
+    print("📊 Surface data status:")
+    for var_name, da in raw_extracted.items():
+        da_interp = da.interp(interp_coords, method="linear")
+        ds_interpolated[var_name] = da_interp
+        
+        v_min = float(da_interp.min(skipna=True).values)
+        v_max = float(da_interp.max(skipna=True).values)
+        print(f"  • {var_name.upper()}: min={v_min:.2f}, max={v_max:.2f}")
 
-    # Interpolação
-    vars_cubic = [v for v in ['tmp', 'rh'] if v in ds_gfs.data_vars]
-    ds_smoothed_cubic = ds_gfs[vars_cubic].interp(interp_coords, method="cubic") if vars_cubic else xr.Dataset()
+    # Aplica suavização gaussiana
+    ds_smoothed = apply_gaussian_smoothing(ds_interpolated)
 
-    vars_linear = [v for v in ['u10', 'v10', 'gust', 'prate'] if v in ds_gfs.data_vars]
-    ds_smoothed_linear = ds_gfs[vars_linear].interp(interp_coords, method="linear") if vars_linear else xr.Dataset()
-
-    to_merge = [d for d in [ds_smoothed_cubic, ds_smoothed_linear] if len(d.data_vars) > 0]
-    ds_smoothed = xr.merge(to_merge) if to_merge else xr.Dataset()
-
-    ds_smoothed = apply_gaussian_smoothing(ds_smoothed)
-    ds_smoothed = ds_smoothed.reindex({lat_name: list(reversed(ds_smoothed[lat_name].values))})
+    # Reordena latitude de cima para baixo (Norte no topo para renderização origin='upper')
+    ds_smoothed = ds_smoothed.reindex({"lat": list(reversed(ds_smoothed["lat"].values))})
 
     final_arrays = {
         "u10": ds_smoothed['u10'].values if 'u10' in ds_smoothed else None,
@@ -170,28 +199,24 @@ def process_frame(frame_idx: int) -> bool:
 
     try:
         os.makedirs(output_directory, exist_ok=True)
-        print(f"📍 Salvando PNGs em: {output_directory}")
+        saved_count = 0
 
+        # 1. RENDERIZAÇÃO MATPLOTLIB (Camadas Escalares: Temp, Umidade, Rajada, Chuva)
         raster_layers = {
-            "temperature": {"data": final_arrays["tmp"], "cmap": "inferno", "vmax": 40.0},
-            "humidity":    {"data": final_arrays["rh"],  "cmap": "YlGnBu",   "vmax": 100.0},
-            "gust":        {"data": final_arrays["gust"],"cmap": "magma",    "vmax": 90.0},
-            "rain":        {"data": final_arrays["prate"],"cmap": "Blues",   "vmax": 35.0}
+            "temperature": {"data": final_arrays["tmp"],  "cmap": "inferno", "vmin": 15.0, "vmax": 40.0, "mask_below": None},
+            "humidity":    {"data": final_arrays["rh"],   "cmap": "YlGnBu",  "vmin": 20.0, "vmax": 100.0, "mask_below": None},
+            "gust":        {"data": final_arrays["gust"], "cmap": "magma",   "vmin": 15.0, "vmax": 90.0,  "mask_below": 15.0},
+            "rain":        {"data": final_arrays["prate"],"cmap": "Blues",  "vmin": 0.1,  "vmax": 35.0,  "mask_below": 0.1}
         }
 
-        saved_count = 0
         for layer_name, config in raster_layers.items():
             if config["data"] is None:
                 print(f"⚠️ AVISO: Dados de '{layer_name}' estão None. Imagem ignorada.")
                 continue
 
             data_matrix = config["data"].copy()
-            chosen_cmap = config["cmap"]
-            layer_vmax = config["vmax"]
-
-            threshold = 0.1 if layer_name == "rain" else (15.0 if layer_name == "gust" else (40.0 if layer_name == "humidity" else None))
-
             height, width = data_matrix.shape
+
             fig = plt.figure(figsize=(width / 100, height / 100), dpi=100)
             ax = fig.add_axes([0, 0, 1, 1])
             ax.axis('off')
@@ -200,35 +225,57 @@ def process_frame(frame_idx: int) -> bool:
                 rgba_image = build_rain_rgba_mask(data_matrix, height, width)
                 ax.imshow(rgba_image, origin='upper', interpolation='bicubic')
             else:
-                if threshold is not None:
-                    data_matrix = np.where(data_matrix < threshold, np.nan, data_matrix)
-                current_cmap = plt.get_cmap(chosen_cmap).copy()
+                if config["mask_below"] is not None:
+                    data_matrix = np.where(data_matrix < config["mask_below"], np.nan, data_matrix)
+
+                current_cmap = plt.get_cmap(config["cmap"]).copy()
                 current_cmap.set_bad(color='none', alpha=0.0)
-                ax.imshow(data_matrix, cmap=current_cmap, origin='upper', interpolation='bicubic', vmin=threshold, vmax=layer_vmax)
+
+                ax.imshow(
+                    data_matrix, 
+                    cmap=current_cmap, 
+                    origin='upper', 
+                    interpolation='bicubic', 
+                    vmin=config["vmin"], 
+                    vmax=config["vmax"]
+                )
 
             output_filepath = os.path.join(output_directory, f"amazon_{layer_name}_{frame_idx}.png")
             plt.savefig(output_filepath, transparent=True, dpi=100, pad_inches=0)
             plt.close(fig)
             saved_count += 1
 
+        # 2. EXPORTAÇÃO CODIFICADA EM TEXTURA UV (Para Partículas WebGL no MapLibre)
         if final_arrays["u10"] is not None and final_arrays["v10"] is not None:
-            wind_rgba_image = encode_wind_vectors(final_arrays["u10"], final_arrays["v10"])
-            wind_output_filepath = os.path.join(output_directory, f"amazon_wind_{frame_idx}.png")
-            imageio.imwrite(wind_output_filepath, wind_rgba_image)
+            u_m_s = final_arrays["u10"]
+            v_m_s = final_arrays["v10"]
+
+            # Mapeia [-30, +30] m/s para [0, 255] uint8 (128 = 0 m/s)
+            u_norm = np.clip((u_m_s + 30.0) / 60.0 * 255.0, 0, 255).astype(np.uint8)
+            v_norm = np.clip((v_m_s + 30.0) / 60.0 * 255.0, 0, 255).astype(np.uint8)
+
+            height, width = u_m_s.shape
+            rgba_uv = np.zeros((height, width, 4), dtype=np.uint8)
+            rgba_uv[:, :, 0] = u_norm  # Canal Red = Componente U
+            rgba_uv[:, :, 1] = v_norm  # Canal Green = Componente V
+            rgba_uv[:, :, 2] = 0       # Canal Blue
+            rgba_uv[:, :, 3] = 255     # Alpha Totalmente Opaco
+
+            wind_filepath = os.path.join(output_directory, f"amazon_wind_{frame_idx}.png")
+            imageio.imwrite(wind_filepath, rgba_uv)
             saved_count += 1
 
-        print(f"✅ {saved_count} arquivos salvos com sucesso para o Frame {frame_idx}.")
+        print(f"✅ {saved_count} arquivos raster/texturas gerados com sucesso para o Frame {frame_idx}.")
         return True
 
     except Exception as e:
         print(f"Critical internal error encountered during array processing: {e}")
         return False
-        
-    
+
+
 if __name__ == "__main__":
     print(f"Initializing GFS processing for model run: {MODEL_RUN_DATE.strftime('%Y-%m-%d %H:%M UTC')}")
-    
-    # Export web metadata once before execution
+
     export_frontend_metadata()
 
     successful_frames = 0
