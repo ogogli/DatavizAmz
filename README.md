@@ -5,7 +5,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)[![Framework: MapLibre](https://img.shields.io/badge/Framework-MapLibre-brightgreen.svg)](https://maplibre.org/)
 
-*DatavizAMZ is an open-source WebGIS platform designed to automate the retrieval, processing, and interactive rendering of atmospheric datasets. Optimized for the Amazon Basin, but configurable for other geographical regions, it features a decoupled architecture for real-time environmental monitoring.*
+DatavizAMZ is an open-source WebGIS platform designed to automate the retrieval, processing, and interactive rendering of atmospheric datasets. Optimized for the Amazon Basin, but configurable for other geographical regions, it features a decoupled architecture for real-time environmental monitoring.
 ---
 
 ## 🚀 Key Features
