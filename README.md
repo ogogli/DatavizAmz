@@ -264,7 +264,7 @@ This section covers common runtime errors, dependency pitfalls, and troubleshoot
     ```bash
     conda install -c conda-forge eccodes cfgrib
     ```
-  * **NOTE: The authors have tested DatavizAmz only on Python 3.12.3 and 3.10.12, Ubuntu 22.04.5 and macOS 26.5.2, but strongly believe it can run on other Linux and Python 3 versions.**
+  * **NOTE: The authors have tested DatavizAmz only on Python 3.12.3 and 3.10.12, Ubuntu 22.04.5 and macOS 26.5.2.**
      
 #### ❌ `FileNotFoundError: [Errno 2] No such file or directory: '../frontend/pngs'`
 * **Symptom:** Script fails when attempting to save exported raster PNGs.
