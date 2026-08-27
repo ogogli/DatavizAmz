@@ -16,4 +16,4 @@ imageio>=2.30.0
 # Operational Utilities
 requests>=2.31.0
 urllib3>=2.0.0
-
+toolz>=0.12.0
