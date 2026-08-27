@@ -24,7 +24,6 @@ DatavizAmz/
 ├── backend/
 │   ├── get_grib2.py          # Primary data ingestion, processing, and raster export script
 │   ├── utils.py              # Mathematical transformation and spatial filtering utilities
-│   ├── requirements.txt      # Python dependencies for data pipeline
 |   ├── config.py             # Config variables 
 │   └── cron_output.log       # Output log generated after each cron run
 ├── frontend/
@@ -38,7 +37,9 @@ DatavizAmz/
 ├── tests/
 │   ├── test_pipeline.py       # Unitary test for get_grib2.py
 ├── L(CENSE                   # MIT License file
-└── README.md                 # System documentation
+├── README.md                 # System documentation
+└── requirements.txt          # Python dependencies for data pipeline
+
 ```
 
 ---
