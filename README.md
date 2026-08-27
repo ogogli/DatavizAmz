@@ -229,7 +229,6 @@ Add the daily job definition (configured for **05:30 UTC** to ingest the 00z for
 ```bash
 cd path_to_DatavizAmz
 pytest tests/test_pipeline.py
-# or python3 pytest tests/test_pipeline.py depending on how Python 3 was installed
 ```
  
 ---
