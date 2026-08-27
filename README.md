@@ -225,11 +225,11 @@ Add the daily job definition (configured for **05:30 UTC** to ingest the 00z for
 # after inserting the line, exit crontab typing ctrl-O crtl-X.
 # after each cron task execution a log file (cron_output.log) is generated inside the backend folder.
 ```
-### 6. Running the tests (after installing application pytest)
+### 6. Running the tests (after installing application pytest [pip install pytest])
 ```bash
 cd path_to_DatavizAmz
-python pytests/test_pipeline.py
-# or python3 pytests/test_pipeline.py depending on how Python 3 was installed
+pytest tests/test_pipeline.py
+# or python3 pytest tests/test_pipeline.py depending on how Python 3 was installed
 ```
  
 ---
