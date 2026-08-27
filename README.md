@@ -152,6 +152,11 @@ Calling `export_frontend_metadata()` generates `frontend/metadata.json`, synchro
 ```
 ---
 
+### Bounding Box & Coordinate Systems
+- **Raw GFS Coordinates (Backend Ingestion):** `[285.875°E, 314.125°E]` (using NOAA GFS 0°–360° Easting convention).
+- **WebGIS Viewport (Frontend Rendering):** `[-74.125°W, -45.875°W]` (automatically converted to standard WGS84 -180° to +180° range)
+---
+
 ### 📊 Output Artifacts & File Specifications
 
 Each pipeline execution outputs two synchronized static files into the web root directory:
